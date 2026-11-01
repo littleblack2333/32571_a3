@@ -6,13 +6,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
 # F4 - Sort
 CATEGORY_URL = (
     "https://opencart.abstracta.us/"
     "index.php?route=product/category&path=20&limit=100"
 )
-
+def prepare_screenshot(driver):
+    driver.execute_script("""
+        window.scrollTo(0, 350);
+    """)
 
 def open_category(driver, wait):
     driver.get(CATEGORY_URL)
@@ -56,14 +58,12 @@ def select_sort(driver, wait, keyword):
         )
     )
 
-
 def get_cards(driver, wait):
     return wait.until(
         EC.presence_of_all_elements_located(
             (By.CSS_SELECTOR, ".product-layout")
         )
     )
-
 
 def get_names(driver, wait):
     cards = get_cards(driver, wait)
@@ -72,7 +72,6 @@ def get_names(driver, wait):
         card.find_element(By.CSS_SELECTOR, "h4 a").text.strip()
         for card in cards
     ]
-
 
 def get_prices(driver, wait):
     cards = get_cards(driver, wait)
@@ -98,7 +97,6 @@ def get_prices(driver, wait):
         )
 
     return prices
-
 
 def get_models(driver, wait):
     """Read model codes from product detail pages."""
@@ -145,7 +143,6 @@ def get_models(driver, wait):
 
     return models
 
-
 # Test Scenario 1: Sort by Name
 @pytest.mark.online
 def test_sort_by_name(driver, wait):
@@ -165,9 +162,9 @@ def test_sort_by_name(driver, wait):
     assert names_desc == sorted(
         names_desc, key=str.casefold, reverse=True
     ), f"Name descending failed: {names_desc}"
+    prepare_screenshot(driver)
 
     print("PASS: Name ascending and descending")
-
 
 # Test Scenario 2: Sort by Price
 @pytest.mark.online
@@ -188,9 +185,9 @@ def test_sort_by_price(driver, wait):
     assert prices_desc == sorted(
         prices_desc, reverse=True
     ), f"Price descending failed: {prices_desc}"
+    prepare_screenshot(driver)
 
     print("PASS: Price ascending and descending")
-
 
 # Test Scenario 3: Sort by Model
 @pytest.mark.online
@@ -213,7 +210,7 @@ def test_sort_by_model(driver, wait):
     assert models_desc == sorted(
         models_desc, key=str.casefold, reverse=True
     ), f"Model descending failed: {models_desc}"
-
+    open_category(driver, wait)
+    select_sort(driver, wait, "sort=p.model&order=DESC")
+    prepare_screenshot(driver)
     print("PASS: Model ascending and descending")
-
-
